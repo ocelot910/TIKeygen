@@ -1,0 +1,102 @@
+﻿@page "/"
+@using System.Text
+@using System.Text.Json
+@using Org.BouncyCastle.Crypto
+@using Org.BouncyCastle.Crypto.Generators
+@using Org.BouncyCastle.Crypto.Parameters
+@using Org.BouncyCastle.Security
+@using Org.BouncyCastle.Crypto.Engines
+@using Org.BouncyCastle.Crypto.Signers
+@using Org.BouncyCastle.Crypto.Digests
+
+@using TIWebsite.Pages;
+
+@inject IJSRuntime JS
+@using System.IO
+
+<PageTitle>Home</PageTitle>
+
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+      const arrayBuffer = await contentStreamReference.arrayBuffer();
+      const blob = new Blob([arrayBuffer]);
+      const url = URL.createObjectURL(blob);
+      const anchorElement = document.createElement('a');
+      anchorElement.href = url;
+      anchorElement.download = fileName ?? '';
+      anchorElement.click();
+      anchorElement.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    window.getUserAgent = () => {
+        return navigator.userAgent;
+    };
+</script>
+
+<h1>TIKeygen</h1>
+
+<div style="display: grid; row-gap: 16px;">
+    <div style="display: flex; gap: 16px;">
+        <div>
+            Name of your computer:<br />
+            <input @bind="_machineName" width="60" />
+        </div>
+        <div>
+            Your username:<br />
+            <input @bind="_userName" width="60" />
+        </div>
+    </div>
+
+    <button style="width: fit-content;" @onclick="GenerateLicense">Generate</button>
+
+    @if (!string.IsNullOrEmpty(_output))
+    {
+        <hr />
+        <h4>Generated License</h4>
+        <button style="width: fit-content;" @onclick="async () => await DownloadFileFromStream(_fileName, _output)">Download @_fileName</button>
+        <div>
+            @if (_userAgent.Contains("Windows"))
+            {
+                <p>Download and copy @_fileName to <strong>%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\actdata</strong></p>
+            }
+        </div>
+        <textarea rows="8" cols="80" readonly>@_output</textarea>
+    }
+</div>
+
+
+@code {
+    private string _userAgent = "";
+
+    private void GenerateLicense()
+    {
+        if (string.IsNullOrWhiteSpace(_machineName) || string.IsNullOrWhiteSpace(_userName))
+        {
+            _output = "Please enter a valid computer name or username.";
+            return;
+        }
+
+        _output = GenerateToken(_machineName + _userName);
+    }
+
+    private async Task DownloadFileFromStream(string filename, string content)
+    {
+        Stream fileStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
+
+        using var streamRef = new DotNetStreamReference(stream: fileStream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", filename, streamRef);
+    }
+
+    private async Task<string> GetUserAgent() => await JS.InvokeAsync<string>("getUserAgent");
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _userAgent = await GetUserAgent();
+            StateHasChanged();
+        }
+    }
+}
