@@ -6,40 +6,52 @@ using Org.BouncyCastle.Crypto.Signers;
 using Org.BouncyCastle.Security;
 using System.Text;
 using System.Text.Json;
+using static TIWebsite.Utils.EncodeUtils;
 
 namespace TIWebsite.Pages;
 
 public partial class Home
 {
-    private string _machineName = "";
-    private string _output = "";
-    private string _userName = "";
+    // properties
+    private string _machineName { set; get; } = "";
+    private string _output { set; get; } = "";
+    private string _userName { set; get; } = "";
+    private string _userAgent { set; get; } = "";
 
-
+    // constants
     private static string _fileName => "actdata.properties";
+    private static string _kid => "abc";
+    private static int _iat => 1700000000;
+    private static int _expiry => 2147483647;
+    private static string _guid => "00000000-0000-0000-0000-000000000000";
+
+    private void GenerateLicense()
+    {
+        if (string.IsNullOrWhiteSpace(_machineName) || string.IsNullOrWhiteSpace(_userName))
+        {
+            _output = "Please enter a valid computer name or username.";
+            return;
+        }
+        _output = GenerateToken(_machineName + _userName);
+    }
 
     private static string GenerateToken(string hwid)
     {
-        string kid = "abc";
-        int iat = 1700000000;
-        int expiry = 2147483647;
-        string dummyGuid = "00000000-0000-0000-0000-000000000000";
-
-        string hwUuid = UuidV3FromString(hwid).ToString();
+        string hwUuid = EncodeUuidV3(hwid).ToString();
 
         string licenseTokenJson = $$"""
         {
-          "sub": "{{dummyGuid}}",
+          "sub": "{{_guid}}",
           "TI-Nspire_CX_CAS_Student": true,
-          "lic": "{{dummyGuid}}",
+          "lic": "{{_guid}}",
           "iss": "https://edtech.ti.com",
-          "ibb": {{iat}},
-          "exp": {{expiry}},
-          "iat": {{iat}},
-          "ibe": {{expiry}},
-          "jti": "{{dummyGuid}}",
+          "ibb": {{_iat}},
+          "exp": {{_expiry}},
+          "iat": {{_iat}},
+          "ibe": {{_expiry}},
+          "jti": "{{_guid}}",
           "hw": "{{hwUuid}}",
-          "rfr": {{expiry}}
+          "rfr": {{_expiry}}
         }
         """;
 
@@ -49,13 +61,13 @@ public partial class Home
         {
             ["alg"] = "RS256",
             ["typ"] = "JWT",
-            ["kid"] = kid
+            ["kid"] = _kid
         };
         string headerJson = JsonSerializer.Serialize(headerDict);
         string payloadJson = JsonSerializer.Serialize(payloadDict);
 
-        string encodedHeader = Base64UrlEncode(Encoding.UTF8.GetBytes(headerJson));
-        string encodedPayload = Base64UrlEncode(Encoding.UTF8.GetBytes(payloadJson));
+        string encodedHeader = EncodeBase64Url(Encoding.UTF8.GetBytes(headerJson));
+        string encodedPayload = EncodeBase64Url(Encoding.UTF8.GetBytes(payloadJson));
         string dataToSign = encodedHeader + "." + encodedPayload;
         byte[] dataToSignBytes = Encoding.UTF8.GetBytes(dataToSign);
 
@@ -70,7 +82,7 @@ public partial class Home
         signer.BlockUpdate(dataToSignBytes, 0, dataToSignBytes.Length);
         byte[] signature = signer.GenerateSignature();
 
-        string encodedSignature = Base64UrlEncode(signature);
+        string encodedSignature = EncodeBase64Url(signature);
         string jwt = dataToSign + "." + encodedSignature;
 
         byte[] modulusBytes = publicKey.Modulus.ToByteArray();
@@ -80,45 +92,16 @@ public partial class Home
             Array.Copy(modulusBytes, 1, trimmed, 0, trimmed.Length);
             modulusBytes = trimmed;
         }
-        string n = Base64UrlEncode(modulusBytes);
+        string n = EncodeBase64Url(modulusBytes);
 
         string rawResponse =
-            $"kty=RSA\ne=AQAB\nkid={kid}\nn={n}\n" +
+            $"kty=RSA\ne=AQAB\nkid={_kid}\nn={n}\n" +
             $"license_token={jwt}\n" +
             "access_token=aaaaaaaaaaaaaaaaaaaaaaaaaa\n" +
             "refresh_token=aaaaaaaaaaaaaaaaaaaaaaaaaa\n" +
-            $"expires_in=25200\nissued_at={iat}\n" +
+            $"expires_in=25200\nissued_at={_iat}\n" +
             "email=visit ocelot910 on GitHub";
 
-        return Base64UrlEncode(Encoding.UTF8.GetBytes(rawResponse));
-    }
-
-    private static string Base64UrlEncode(byte[] input)
-    {
-        return Convert.ToBase64String(input)
-            .TrimEnd('=')
-            .Replace('+', '-')
-            .Replace('/', '_');
-    }
-
-    private static Guid UuidV3FromString(string input)
-    {
-        var md5 = new MD5Digest();
-        byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-        md5.BlockUpdate(inputBytes, 0, inputBytes.Length);
-        byte[] hash = new byte[md5.GetDigestSize()];
-        md5.DoFinal(hash, 0);
-
-        hash[6] = (byte)((hash[6] & 0x0F) | 0x30);
-        hash[8] = (byte)((hash[8] & 0x3F) | 0x80);
-
-        return new Guid(
-        [
-            hash[3], hash[2], hash[1], hash[0],
-            hash[5], hash[4],
-            hash[7], hash[6],
-            hash[8], hash[9], hash[10], hash[11],
-            hash[12], hash[13], hash[14], hash[15]
-        ]);
-    }    
+        return EncodeBase64Url(Encoding.UTF8.GetBytes(rawResponse));
+    }  
 }

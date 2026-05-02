@@ -1,20 +1,15 @@
 ﻿@page "/"
-@using System.Text
-@using System.Text.Json
-@using Org.BouncyCastle.Crypto
-@using Org.BouncyCastle.Crypto.Generators
-@using Org.BouncyCastle.Crypto.Parameters
-@using Org.BouncyCastle.Security
-@using Org.BouncyCastle.Crypto.Engines
-@using Org.BouncyCastle.Crypto.Signers
-@using Org.BouncyCastle.Crypto.Digests
 
-@using TIWebsite.Pages;
+@using Microsoft.FluentUI.AspNetCore.Components
+@using Microsoft.FluentUI.AspNetCore.Components.DesignTokens
+@using TIWebsite.Pages
+@using static TIWebsite.Utils.FileUtils
+@using static TIWebsite.Utils.OSUtils
 
-@inject IJSRuntime JS
+@inject IJSRuntime js
 @using System.IO
 
-<PageTitle>Home</PageTitle>
+<PageTitle>TIKeygen</PageTitle>
 
 <script>
     window.downloadFileFromStream = async (fileName, contentStreamReference) => {
@@ -34,69 +29,66 @@
     };
 </script>
 
-<h1>TIKeygen</h1>
-
-<div style="display: grid; row-gap: 16px;">
-    <div style="display: flex; gap: 16px;">
-        <div>
-            Name of your computer:<br />
-            <input @bind="_machineName" width="60" />
-        </div>
-        <div>
-            Your username:<br />
-            <input @bind="_userName" width="60" />
-        </div>
-    </div>
-
-    <button style="width: fit-content;" @onclick="GenerateLicense">Generate</button>
-
-    @if (!string.IsNullOrEmpty(_output))
-    {
-        <hr />
-        <h4>Generated License</h4>
-        <button style="width: fit-content;" @onclick="async () => await DownloadFileFromStream(_fileName, _output)">Download @_fileName</button>
-        <div>
-            @if (_userAgent.Contains("Windows"))
-            {
-                <p>Download and copy @_fileName to <strong>%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\actdata</strong></p>
-            }
-        </div>
-        <textarea rows="8" cols="80" readonly>@_output</textarea>
-    }
-</div>
-
-
 @code {
-    private string _userAgent = "";
-
-    private void GenerateLicense()
-    {
-        if (string.IsNullOrWhiteSpace(_machineName) || string.IsNullOrWhiteSpace(_userName))
-        {
-            _output = "Please enter a valid computer name or username.";
-            return;
-        }
-
-        _output = GenerateToken(_machineName + _userName);
-    }
-
-    private async Task DownloadFileFromStream(string filename, string content)
-    {
-        Stream fileStream = new MemoryStream(Encoding.UTF8.GetBytes(content));
-
-        using var streamRef = new DotNetStreamReference(stream: fileStream);
-
-        await JS.InvokeVoidAsync("downloadFileFromStream", filename, streamRef);
-    }
-
-    private async Task<string> GetUserAgent() => await JS.InvokeAsync<string>("getUserAgent");
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            _userAgent = await GetUserAgent();
+            _userAgent = await GetUserAgent(js);
             StateHasChanged();
         }
     }
 }
+
+<FluentStack Orientation="Orientation.Vertical" VerticalGap="18">
+    <FluentHeader>
+        <h1>TIKeygen</h1>
+    </FluentHeader>
+
+    <BaseLayerLuminance Value="(float?)0.2">
+        <FluentCard ParentReference="@context">
+            <FluentStack Orientation="Orientation.Vertical" VerticalGap="18">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
+                    <FluentTextField @bind-Value="_machineName" Label="Name of your computer" />
+                    <FluentTextField @bind-Value="_userName" Label="Your username" />
+                </FluentStack>
+
+                <FluentButton @onclick="GenerateLicense">Generate</FluentButton>
+            </FluentStack>
+        </FluentCard>
+    </BaseLayerLuminance>
+    
+
+    @if (!string.IsNullOrEmpty(_output))
+    {
+        <BaseLayerLuminance Value="(float?)0.15">
+            <FluentCard ParentReference="@context">
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="18">
+                    <FluentLabel Typo="Typography.H3">Generated License</FluentLabel>
+                    @switch (GetPlatform(_userAgent))
+                    {
+                        case Platform.Linux:
+                            <FluentLabel>Download and copy @_fileName to <strong>~/.wine/drive_c/users/YOURUSERNAME/AppData/Roaming/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
+                            <FluentLabel>Create the <strong>actdata</strong> folder if it doesn't exist.</FluentLabel>
+                            break;
+                        case Platform.Windows:
+                            <FluentLabel>Download and copy @_fileName to <strong>"%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\actdata"</strong></FluentLabel>
+                            <FluentLabel>If the <strong>actdata</strong> folder doesn't exist, go to <strong>"%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\"</strong> make a folder called <strong>actdata</strong>, then copy @_fileName into that folder</FluentLabel>
+                            break;
+                        case Platform.Mac:
+                            <FluentLabel><strong>Note:</strong> Download <a href="https://tiplanet.org/forum/archives_voir.php?id=4585176">this</a> version of TI-Nspire CX CAS Student Software, as later versions don't work at all even with a real license</FluentLabel>
+                            <FluentLabel>Download and copy @_fileName to <strong>~/Library/Preferences/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
+                            <FluentLabel>Create the <strong>actdata</strong> folder if it doesn't exist.</FluentLabel>
+                            break;
+                        default:
+                            break;
+                    }
+                    <FluentButton Appearance="Appearance.Accent" @onclick="async () => await DownloadFileFromStream(js, _fileName, _output)"><strong>Download @_fileName</strong></FluentButton>
+
+                    <FluentTextArea Rows="8" Cols="80" ReadOnly Value="@_output"/>
+                </FluentStack>
+            </FluentCard>
+        </BaseLayerLuminance>
+    }
+</FluentStack>

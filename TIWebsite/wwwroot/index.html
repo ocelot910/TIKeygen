@@ -11,17 +11,47 @@
     <link rel="stylesheet" href="css/app.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
     <link href="TIWebsite.styles.css" rel="stylesheet" />
+    <link href="_content/Microsoft.FluentUI.AspNetCore.Components/css/reboot.css" rel="stylesheet" />
+    <link href="_content/Microsoft.FluentUI.AspNetCore.Components/css/fluent.css" rel="stylesheet" />
+
     <script type="importmap"></script>
+    <!-- Set the default theme -->
+    <script src="_content/Microsoft.FluentUI.AspNetCore.Components/js/loading-theme.js" type="text/javascript"></script>
+    <loading-theme storage-name="theme"></loading-theme>
 </head>
 
 <body>
     <div id="app">
-        <svg class="loading-progress">
-            <circle r="40%" cx="50%" cy="50%" />
-            <circle r="40%" cx="50%" cy="50%" />
-        </svg>
-        <div class="loading-progress-text"></div>
+        <div style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #202020;
+    ">
+            <div style="text-align: center;">
+                <svg width="48" height="48" viewBox="0 0 48 48" style="animation: spin 1s linear infinite;">
+                    <circle cx="24" cy="24" r="20"
+                            fill="none"
+                            stroke="#60cdff"
+                            stroke-width="3"
+                            stroke-dasharray="80 40"
+                            stroke-linecap="round" />
+                </svg>
+                <div style="color: #ffffff; font-family: 'Segoe UI', sans-serif; font-size: 14px; margin-top: 12px;">
+                    Loading...
+                </div>
+            </div>
+        </div>
     </div>
+
+    <style>
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
 
     <div id="blazor-error-ui">
         An unhandled error has occurred.
