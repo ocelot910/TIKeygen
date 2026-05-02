@@ -50,6 +50,18 @@
         <FluentCard ParentReference="@context">
             <FluentStack Orientation="Orientation.Vertical" VerticalGap="18">
                 <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
+                    @switch (GetPlatform(_userAgent))
+                    {
+                        case Platform.Mac:
+                            <FluentLabel><strong>Note: </strong> Open the terminal app. Your username is to the left of the &#64;, and your computer name is to the right of the &#64;</FluentLabel>
+                            break;
+                        case Platform.Windows:
+                            <FluentLabel><strong>Note: </strong></FluentLabel>
+                            <FluentLabel>Open "System Information", then find the "Username" item (you may have to scroll). </FluentLabel>
+                            <FluentLabel>Your computer name is to the left of the \, and your username is to the right of the \</FluentLabel>
+                            <FluentSpacer/>
+                            break;
+                    }
                     <FluentTextField @bind-Value="_machineName" Label="Name of your computer" />
                     <FluentTextField @bind-Value="_userName" Label="Your username" />
                 </FluentStack>
