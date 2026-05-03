@@ -81,7 +81,7 @@
                     @switch (GetPlatform(_userAgent))
                     {
                         case Platform.Linux:
-                            <FluentLabel>Download and copy @_fileName to <strong>~/.wine/drive_c/users/YOURUSERNAME/AppData/Roaming/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
+                            <FluentLabel>Download and copy @_fileName to <strong>~/.wine/drive_c/users/@_userName/AppData/Roaming/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
                             <FluentLabel>Create the <strong>actdata</strong> folder if it doesn't exist.</FluentLabel>
                             break;
                         case Platform.Windows:
