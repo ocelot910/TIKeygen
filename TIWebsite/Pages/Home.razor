@@ -45,24 +45,57 @@
     <FluentHeader>
         <h1>TIKeygen</h1>
     </FluentHeader>
+    <BaseLayerLuminance Value="(float?)0.15">
+        <FluentCard ParentReference="@context">
+            <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
+                <FluentLabel Typo="Typography.H3">Prerequisites</FluentLabel>
 
-    <BaseLayerLuminance Value="(float?)0.2">
+                <FluentLabel><span>• First download, install, and run the the TI Nspire CX CAS Student Software: </span>
+                    
+                @switch (GetPlatform(_userAgent))
+                {
+                    case Platform.Mac:
+                        <span><a href="https://tiplanet.org/forum/archives_voir.php?id=4585176">MacOS - v6.2</a> - v6.3 doesn't work</span>
+                        break;
+                    case Platform.Linux:
+                        <span><a href="https://education.ti.com/en/software/details/en/36BE84F974E940C78502AA47492887AB/ti-nspirecxcas_pc_full">Linux</a> - install via Wine</span>
+                        break;
+                    case Platform.Windows:
+                        <span><a href="https://education.ti.com/en/software/details/en/36BE84F974E940C78502AA47492887AB/ti-nspirecxcas_pc_full">Windows</a></span>
+                        break;
+                    default:
+                        break;
+                }
+                    
+                </FluentLabel>
+                <FluentLabel>• Once you get to the login dialog, close the app and continue below</FluentLabel>
+            </FluentStack>
+        </FluentCard>
+    </BaseLayerLuminance>
+    <BaseLayerLuminance Value="(float?)0.20">
         <FluentCard ParentReference="@context">
             <FluentStack Orientation="Orientation.Vertical" VerticalGap="18">
+                <FluentLabel Typo="Typography.H3">Keygen</FluentLabel>
                 <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
                     @switch (GetPlatform(_userAgent))
                     {
                         case Platform.Mac:
-                            <FluentLabel><strong>Note: </strong> Open the terminal app. Your username is to the left of the &#64;, and your computer name is to the right of the &#64;</FluentLabel>
+                            <FluentLabel>• Open the terminal app. Your username is to the left of the &#64;, and your computer name is to the right of the &#64;</FluentLabel>
                             break;
                         case Platform.Windows:
-                            <FluentLabel><strong>Note: </strong></FluentLabel>
-                            <FluentLabel>Open "System Information", then find the "Username" item (you may have to scroll). </FluentLabel>
-                            <FluentLabel>Your computer name is to the left of the \, and your username is to the right of the \</FluentLabel>
-                            <FluentSpacer/>
+                            <FluentLabel>• Open "System Information", then find the "Username" item (you may have to scroll). </FluentLabel>
+                            <FluentLabel>• Your computer name is to the left of the \, and your username is to the right of the \</FluentLabel>
+                            <FluentSpacer />
+                            break;
+                        default:
                             break;
                     }
-                    <FluentTextField @bind-Value="_machineName" Label="Name of your computer" />
+                </FluentStack>
+
+                <FluentDivider Style="width: 100%;" Orientation=Orientation.Horizontal Role="DividerRole.Separator"></FluentDivider>
+
+                <FluentStack Orientation="Orientation.Vertical" VerticalGap="8">
+                    <FluentTextField @bind-Value="_machineName" Label="Computer name" />
                     <FluentTextField @bind-Value="_userName" Label="Your username" />
                 </FluentStack>
 
@@ -74,24 +107,24 @@
 
     @if (!string.IsNullOrEmpty(_output))
     {
-        <BaseLayerLuminance Value="(float?)0.15">
+        <BaseLayerLuminance Value="(float?)0.30">
             <FluentCard ParentReference="@context">
                 <FluentStack Orientation="Orientation.Vertical" VerticalGap="18">
-                    <FluentLabel Typo="Typography.H3">Generated License</FluentLabel>
+                    <FluentLabel Typo="Typography.H4">Generated License</FluentLabel>
                     @switch (GetPlatform(_userAgent))
                     {
                         case Platform.Linux:
-                            <FluentLabel>Download and copy @_fileName to <strong>~/.wine/drive_c/users/@_userName/AppData/Roaming/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
-                            <FluentLabel>Create the <strong>actdata</strong> folder if it doesn't exist.</FluentLabel>
+                            <FluentLabel>• Download and copy @_fileName to <strong>~/.wine/drive_c/users/@_userName/AppData/Roaming/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
+                            <FluentLabel>• Create the <strong>actdata</strong> folder if it doesn't exist.</FluentLabel>
                             break;
                         case Platform.Windows:
-                            <FluentLabel>Download and copy @_fileName to <strong>"%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\actdata"</strong></FluentLabel>
-                            <FluentLabel>If the <strong>actdata</strong> folder doesn't exist, go to <strong>"%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\"</strong> make a folder called <strong>actdata</strong>, then copy @_fileName into that folder</FluentLabel>
+                            <FluentLabel>• Download and copy @_fileName to <strong>"%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\actdata"</strong></FluentLabel>
+                            <FluentLabel>• If the <strong>actdata</strong> folder doesn't exist, go to <strong>"%APPDATA%\Texas Instruments\TI-Nspire CX CAS Student Software\"</strong> make a folder called <strong>actdata</strong>, then copy @_fileName into that folder</FluentLabel>
                             break;
                         case Platform.Mac:
-                            <FluentLabel><strong>Note:</strong> Download <a href="https://tiplanet.org/forum/archives_voir.php?id=4585176">this</a> version of TI-Nspire CX CAS Student Software, as later versions don't work at all even with a real license</FluentLabel>
-                            <FluentLabel>Download and copy @_fileName to <strong>~/Library/Preferences/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
-                            <FluentLabel>Create the <strong>actdata</strong> folder if it doesn't exist.</FluentLabel>
+                            <FluentLabel>• <strong>Note:</strong> Download <a href="https://tiplanet.org/forum/archives_voir.php?id=4585176">this</a> version of TI-Nspire CX CAS Student Software, as later versions don't work at all even with a real license</FluentLabel>
+                            <FluentLabel>• Download and copy @_fileName to <strong>~/Library/Preferences/Texas Instruments/TI-Nspire CX CAS Student Software/actdata</strong></FluentLabel>
+                            <FluentLabel>• Create the <strong>actdata</strong> folder if it doesn't exist.</FluentLabel>
                             break;
                         default:
                             break;
